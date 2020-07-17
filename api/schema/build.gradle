@@ -1,11 +1,18 @@
+plugins {
+    id "org.openrepose.gradle.plugins.jaxb" version "2.5.0"
+}
 description = 'Apache Isis Core - Schemas'
 apply plugin: 'war'
 apply plugin: 'io.freefair.lombok'
 
+project.buildDir = './target'
+
+def xjcSources = "${projectDir}/target/generated-sources/xjc"
+
 sourceSets {
     main {
         java {
-            srcDir 'target/generated-sources/xjc'
+            srcDir "${xjcSources}"
         }
     }
 }
@@ -17,9 +24,11 @@ dependencies {
     compile(Libs.jodaTime)
 
     // These dependencies are required in order to build on jdk11
-    compile(Libs.jaxbApi)  // not set in POM`s ??
-    compile(Libs.jaxbCore)
-    compile(Libs.jaxbImpl)
+    jaxb(Libs.jaxbApi)  // not set in POM`s ??
+    jaxb(Libs.jaxbCore)
+    jaxb(Libs.jaxbImpl)
+    jaxb(Libs.jaxbXjc)
+    jaxb("org.jvnet.jaxb2_commons:jaxb2-namespace-prefix:1.3")
 }
 
 task packageTests(type: Jar) {
@@ -27,3 +36,31 @@ task packageTests(type: Jar) {
     classifier = 'tests'
 }
 artifacts.archives packageTests
+
+jaxb {
+	xsdDir = "${project.projectDir}/src/main/resources/org/apache/isis/schema"
+ 	xsdIncludes = ['**/*.xsd']
+ 	bindingsDir = "${project.projectDir}/src/main/resources/org/apache/isis/schema"
+ 	bindings = ['*.xml']
+ 	episodesDir = "${project.buildDir}/generated-resources"
+ 	xjc {
+ 		destinationDir = "${xjcSources}"
+ 		accessExternalSchema = 'file'
+ 		args = ["-Xnamespace-prefix"]
+ 	}
+}
+xjc {
+	doFirst {
+		mkdir "${xjcSources}"
+	}
+}
+
+compileJava {
+	dependsOn xjc
+}
+
+// required due to bug 
+// https://github.com/rackerlabs/gradle-jaxb-plugin/issues/36
+tasks.named("xsd-dependency-tree").configure {
+    outputs.upToDateWhen { false }
+}
