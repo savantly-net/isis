@@ -72,3 +72,5 @@ rebel.xml
 _commit.sh
 
 /incubator/clients/kroviz/package.json
+/.gradle/
+**/build/

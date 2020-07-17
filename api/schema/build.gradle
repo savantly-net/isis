@@ -5,14 +5,10 @@ description = 'Apache Isis Core - Schemas'
 apply plugin: 'war'
 apply plugin: 'io.freefair.lombok'
 
-project.buildDir = './target'
-
-def xjcSources = "${projectDir}/target/generated-sources/xjc"
-
 sourceSets {
     main {
         java {
-            srcDir "${xjcSources}"
+            srcDir "${buildDir}/generated-sources/xjc"
         }
     }
 }
@@ -42,17 +38,10 @@ jaxb {
  	xsdIncludes = ['**/*.xsd']
  	bindingsDir = "${project.projectDir}/src/main/resources/org/apache/isis/schema"
  	bindings = ['*.xml']
- 	episodesDir = "${project.buildDir}/generated-resources"
  	xjc {
- 		destinationDir = "${xjcSources}"
  		accessExternalSchema = 'file'
  		args = ["-Xnamespace-prefix"]
  	}
-}
-xjc {
-	doFirst {
-		mkdir "${xjcSources}"
-	}
 }
 
 compileJava {
